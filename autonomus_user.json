@@ -1,0 +1,33 @@
+    {
+        "project_name": {
+            "english": "None (Autonomous user)",
+            "french": "Aucun projet de collecte (Utilisateur autonome)"
+        },
+        "notifications_day": {
+            "0": {
+                "day": 0,
+                "notifications": [
+                    {
+                        "hour": null,
+                        "title_fr": "🏁u Vous y êtes",
+                        "title_en": "🏁r Here you go",
+                        "message_fr": "Félicitations vous participez maintenant à l'expérimentation 'Aucun projet de collecte (Utilisateur autonome)' 😊 ",
+                        "message_en": "Congratulations you are part of 'None (Autonomous user)' experiment 😊 "
+                    }
+                ]
+            },
+            "1": {
+                "day": 1,
+                "notifications": [
+                    {
+                        "hour": 21,
+                        "title_fr": "📅o  Jour 1",
+                        "title_en": "📅a  Day 1",
+                        "message_fr": "Choisissez le mode 🚴0 <200d>♀️ 🚋  🚶0 <200d>♀️🚔t  🚁t  et motif 🤿 pour vos déa placements ",
+                        "message_en": "Choose the mode 🚴  <200d>♀️ 🚋  🚶  <200d>♀️🚔   🚁   and the purpose 🤿 for your trips"
+                    }
+                ]
+            }
+	}
+        
+    }
