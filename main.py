@@ -9,6 +9,9 @@ import uuid
 import pytz
 import requests
 
+import mailchimp_transactional as MailchimpTransactional
+from mailchimp_transactional.api_client import ApiClientError
+
 
 def fetch_users(db, project):
     return db.Stage_Profiles.find({"project_name": {"$in": [project["name_fr"], project["name_en"]]}})
@@ -45,6 +48,36 @@ def sendPushNotifications(timezone, user, delta, daily_notifications):
     except:
         pass
 
+def sendEmail(timezone, user, delta, daily_emails, from_email, mailchimp):
+    try:
+        for email in daily_emails:
+            if email["day"] == str(delta.days):
+                if (datetime.now(timezone).hour - int(email["display_time"][0:2])) == 0:
+
+                    (title, message) = getTitleBodyTuple(email, user["phone_lang"])
+
+                    message = {
+                        "from_email": from_email,
+                        "subject": title,
+                        "text": message,
+                        "to": [
+                        {
+                            "email": user["email"],
+                            "type": "to"
+                        }
+                        ]
+                    }
+                    try:
+                        response = mailchimp.messages.send({"message":message})
+                        print('API called successfully: {}'.format(response))
+                    except ApiClientError as error:
+                        print('An exception occurred: {}'.format(error.text))
+                elif datetime.now().hours() - email["hour"] > 0:
+                    print("Email already sent or cronjob was missed")
+                else:
+                    print("It's not time to send the email")
+    except:
+        pass
 
 def main():
     ap = argparse.ArgumentParser()
@@ -58,6 +91,9 @@ def main():
     client = MongoClient(env["timeseries"]["url"])
     db = client.Stage_database
 
+
+    mailchimp = MailchimpTransactional.Client(env["MAILCHIMP_API_KEY"])
+
     response = requests.get(args["projectconfigendpoint"])
 
     project = json.load(response)
@@ -70,6 +106,8 @@ def main():
         delta = datetime.now()-user["update_ts"]
 
         sendPushNotifications(timezone, user, delta, project["daily_notifications"])
+
+        sendEmail(timezone, user, delta, project["daily_emails"], env["from_email"], mailchimp)
 
         
 
