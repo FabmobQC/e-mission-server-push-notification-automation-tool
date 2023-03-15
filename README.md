@@ -140,7 +140,7 @@ and for each notification in the day in the time minus the current time is less 
 }
 ```
 
-Create an .env file that contains the url to the server example:
+Create an .env file that contains the url to the server example or point to main e-mission config file `conf/storage/db.conf`:
 
 ```
 {
