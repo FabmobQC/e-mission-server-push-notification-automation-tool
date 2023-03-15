@@ -43,7 +43,13 @@ Projects configuration is handled by the E-mission backend project that returns 
 
 ## Important
 
-The script should be executed once a day to avoid sending notifications multiple times per day.
+The script should be executed every hour using a cronjob for example:
+
+```
+# Send push notifications to users to remember them to label modes and reasons for each trip
+30 * * * * /root/send-project-scheduled-push-notifications.sh /root/projects_experiments/projects_list
+```
+
 
 ## How does the script works:
 
