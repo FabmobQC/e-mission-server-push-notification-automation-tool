@@ -5,7 +5,7 @@
 
 This tool needs to be clone in e-mission-server/bin folder on e-mission-server (https://github.com/e-mission/e-mission-server)
 
-Once setup, the tool can be called from a script that pulls configuration data from the corresponding endpoints for each project.
+Once setup, the tool can be called from a script that pulls configuration data from the corresponding endpoints for each project. The input for this script is a file containing a list of configuration endpoints.
 
 ```
 #!/bin/bash
@@ -148,3 +148,34 @@ Create an .env file that contains the url to the server example:
 }
 ```
 
+## Sending Transactional emails with Mailchimp api with Python
+
+https://mailchimp.com/developer/transactional/guides/send-first-email/
+
+
+```
+import mailchimp_transactional as MailchimpTransactional
+from mailchimp_transactional.api_client import ApiClientError
+
+mailchimp = MailchimpTransactional.Client('YOUR_API_KEY')
+message = {
+    "from_email": "manny@mailchimp.com",
+    "subject": "Hello world",
+    "text": "Welcome to Mailchimp Transactional!",
+    "to": [
+      {
+        "email": "freddie@example.com",
+        "type": "to"
+      }
+    ]
+}
+
+def run():
+  try:
+    response = mailchimp.messages.send({"message":message})
+    print('API called successfully: {}'.format(response))
+  except ApiClientError as error:
+    print('An exception occurred: {}'.format(error.text))
+
+run()
+```
