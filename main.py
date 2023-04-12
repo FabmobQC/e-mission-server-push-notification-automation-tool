@@ -20,15 +20,24 @@ def get_users(db, project):
         ]
     })
 
-def getTitleBodyTuple(notification, language):
+def getNotificationTuple(notification, language):
+    titles = notification["titles"]
+    messages = notification["messages"]
     title = ""
     body = ""
-    for element in notification["titles"]:
+
+    for element in titles:
         if element["language"] == language:
             title = element["title"]
-    for element in notification["messages"]:
+    for element in messages:
         if element["language"] == language:
             body = element["body"]
+
+    if not title and titles:
+        title = titles[0]["title"]
+    if not body and messages:
+        body = messages[0]["body"]
+
     return (title, body)
 
 def sendPushNotifications(user, now_datetime, project_day, daily_notifications):
@@ -37,7 +46,7 @@ def sendPushNotifications(user, now_datetime, project_day, daily_notifications):
             if notification["day"] == project_day:
                 if now_datetime.hour == int(notification["display_time"][0:2]):
 
-                    (title, message) = getTitleBodyTuple(notification, user["phone_lang"])
+                    (title, message) = getNotificationTuple(notification, user["phone_lang"])
 
                     json_data = {
                         "title": title,
@@ -52,17 +61,37 @@ def sendPushNotifications(user, now_datetime, project_day, daily_notifications):
     except:
         pass
 
+def getEmailTuple(email, language):
+    subjects = email["subjects"]
+    messages = email["messages"]
+    subject = ""
+    body = ""
+
+    for element in subjects:
+        if element["language"] == language:
+            subject = element["title"]
+    for element in messages:
+        if element["language"] == language:
+            body = element["body"]
+
+    if not subject and subjects:
+        subject = subjects[0]["title"]
+    if not body and messages:
+        body = messages[0]["body"]
+
+    return (subject, body)
+
 def sendEmail(user, now_datetime, project_day, daily_emails, from_email, mailchimp):
     try:
         for email in daily_emails:
             if email["day"] == project_day:
                 if now_datetime.hour == int(email["display_time"][0:2]):
 
-                    (title, message) = getTitleBodyTuple(email, user["phone_lang"])
+                    (subject, message) = getEmailTuple(email, user["phone_lang"])
 
                     message = {
                         "from_email": from_email,
-                        "subject": title,
+                        "subject": subject,
                         "text": message,
                         "to": [
                         {
@@ -71,8 +100,16 @@ def sendEmail(user, now_datetime, project_day, daily_emails, from_email, mailchi
                         }
                         ]
                     }
+                    template_name = email.get("template_name")
                     try:
-                        response = mailchimp.messages.send({"message":message})
+                        if (template_name):
+                            response = mailchimp.messages.send_template({
+                                "template_name": template_name,
+                                "template_content": [{}], #required
+                                "message": message
+                            })
+                        else:
+                            response = mailchimp.messages.send({"message":message})
                         print('API called successfully: {}'.format(response))
                     except ApiClientError as error:
                         print('An exception occurred: {}'.format(error.text))
@@ -98,7 +135,7 @@ def main():
     db = client.Stage_database
     users = get_users(db, project)
 
-    # mailchimp = MailchimpTransactional.Client(env["MAILCHIMP_API_KEY"])
+    mailchimp = MailchimpTransactional.Client(env["MAILCHIMP_API_KEY"])
 
     timezone = pytz.timezone(project["timezone"])
     now_datetime = datetime.now().astimezone(timezone)
@@ -111,9 +148,7 @@ def main():
         project_day = delta.days
 
         sendPushNotifications(user, now_datetime, project_day, project["daily_notifications"])
-
-        #sendEmail(timezone, user, delta, project["daily_emails"], env["from_email"], mailchimp)
+        sendEmail(user, now_datetime, project_day, project["daily_emails"], env["from_email"], mailchimp)
 
 if __name__ == "__main__":
     main()
-
