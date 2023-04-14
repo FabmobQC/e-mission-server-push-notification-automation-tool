@@ -147,7 +147,9 @@ def main():
         delta = now_datetime.date() - creation_datetime.date()
         project_day = delta.days
 
-        sendPushNotifications(user, now_datetime, project_day, project["daily_notifications"])
+        # Push notifications are broken on client. We use local notications instead
+        # sendPushNotifications(user, now_datetime, project_day, project["daily_notifications"])
+        
         sendEmail(user, now_datetime, project_day, project["daily_emails"], env["from_email"], mailchimp)
 
 if __name__ == "__main__":
