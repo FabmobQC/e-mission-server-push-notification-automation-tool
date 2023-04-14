@@ -1,11 +1,11 @@
 # e-mission-server-push-notification-automation-tool
 
 
-## How to use this tool
+## Installation
+1. Clone into e-mission-server/bin folder on e-mission-server (https://github.com/e-mission/e-mission-server)
+2. Install depedencies: `pip install -r requirements.txt`
 
-This tool needs to be clone in e-mission-server/bin folder on e-mission-server (https://github.com/e-mission/e-mission-server)
-
-Once setup, the tool can be called from a script that pulls configuration data from the corresponding endpoints for each project. The input for this script is a file containing a list of configuration endpoints.
+3. Once setup, the tool can be called from a script that pulls configuration data from the corresponding endpoints for each project. The input for this script is a file containing a list of configuration endpoints.
 
 ```
 #!/bin/bash
@@ -34,6 +34,19 @@ do
 	./e-mission-py.bash bin/e-mission-server-push-notification-automation-tool/main.py -p $Line 
 done
 
+```
+
+4. Create an .env file that contains the url to the server example or point to main e-mission config file `conf/storage/db.conf`:
+
+```
+{
+    "timeseries": {
+        "url": "mongodb://DATABASE_USER:PASSWORD@HOST:27017/DATABASE_NAME",
+        "result_limit": 250000
+    },
+    "MAILCHIMP_API_KEY": "md-mailchimpapikey",
+    "from_email": "from@email.org"
+}
 ```
 
 ## Configuration endpoints
@@ -144,44 +157,4 @@ and for each notification in the day in the time minus the current time is less 
     "modes": [],
     "purposes": []
 }
-```
-
-Create an .env file that contains the url to the server example or point to main e-mission config file `conf/storage/db.conf`:
-
-```
-{
-        "url": "mongodb://DATABASE_USER:PASSWORD@HOST:27017/DATABASE_NAME"
-}
-```
-
-## Sending Transactional emails with Mailchimp api with Python
-
-https://mailchimp.com/developer/transactional/guides/send-first-email/
-
-
-```
-import mailchimp_transactional as MailchimpTransactional
-from mailchimp_transactional.api_client import ApiClientError
-
-mailchimp = MailchimpTransactional.Client('YOUR_API_KEY')
-message = {
-    "from_email": "manny@mailchimp.com",
-    "subject": "Hello world",
-    "text": "Welcome to Mailchimp Transactional!",
-    "to": [
-      {
-        "email": "freddie@example.com",
-        "type": "to"
-      }
-    ]
-}
-
-def run():
-  try:
-    response = mailchimp.messages.send({"message":message})
-    print('API called successfully: {}'.format(response))
-  except ApiClientError as error:
-    print('An exception occurred: {}'.format(error.text))
-
-run()
 ```
