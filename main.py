@@ -13,12 +13,15 @@ from mailchimp_transactional.api_client import ApiClientError
 
 def get_users(db, project):
 
-    return db.Stage_Profiles.find({
-        "$or": [
-            {"project_id": {"$eq": project["id"]}},
-            {"project_name": {"$in": [project["name_fr"], project["name_en"]]}},
-        ]
-    })
+    return db.Stage_Profiles.find(
+        {
+            "$or": [
+                {"project_id": {"$eq": project["id"]}},
+                {"project_name": {"$in": [project["name_fr"], project["name_en"]]}},
+            ],
+        },
+        sort=[("$natural", -1)], # This will allow us to keep only the most recent profile for an email
+    )
 
 def getNotificationTuple(notification, language):
     titles = notification["titles"]
@@ -140,7 +143,14 @@ def main():
     timezone = pytz.timezone(project["timezone"])
     now_datetime = datetime.now().astimezone(timezone)
 
+    already_handled_users = set()
+
     for user in users:
+        user_email = user.get("email") # some configs don't save the email
+        if user_email in already_handled_users:
+            continue
+        already_handled_users.add(user_email)
+
         # Get project day
         creation_ts = user["creation_ts"].replace('Z', '+00:00') # fromisoformat does not support 'Z' until Python 3.11
         creation_datetime = datetime.fromisoformat(creation_ts).astimezone(timezone)
@@ -149,8 +159,9 @@ def main():
 
         # Push notifications are broken on client. We use local notications instead
         # sendPushNotifications(user, now_datetime, project_day, project["daily_notifications"])
-        
-        sendEmail(user, now_datetime, project_day, project["daily_emails"], env["from_email"], mailchimp)
+
+        if user_email:
+            sendEmail(user, now_datetime, project_day, project["daily_emails"], env["from_email"], mailchimp)
 
 if __name__ == "__main__":
     main()
