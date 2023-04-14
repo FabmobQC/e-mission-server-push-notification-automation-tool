@@ -1,0 +1,1 @@
+mailchimp_transactional==1.0.50
