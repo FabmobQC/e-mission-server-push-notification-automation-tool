@@ -84,7 +84,19 @@ def getEmailTuple(email, language):
 
     return (subject, body)
 
-def sendEmail(user, now_datetime, project_day, daily_emails, from_email, mailchimp):
+def get_survey_link(user, now_datetime, project):
+    language = user["phone_lang"]
+    email = user["email"]
+    daily_forms = project["daily_forms"]
+    daily_survey = [daily_form for daily_form in daily_forms if daily_form["day"] == 3][0]
+    daily_survey_link = [url for url in daily_survey["urls"] if url["language"] == language][0]["url"]
+
+    formatted_date = now_datetime.strftime("%Y-%m-%d")
+    
+    return f"{daily_survey_link}?user_email={email}&trip_date={formatted_date}"
+
+def sendEmail(user, now_datetime, project_day, project, from_email, mailchimp):
+    daily_emails = project["daily_emails"]
     try:
         for email in daily_emails:
             if email["day"] == project_day:
@@ -106,9 +118,23 @@ def sendEmail(user, now_datetime, project_day, daily_emails, from_email, mailchi
                     template_name = email.get("template_name")
                     try:
                         if (template_name):
+                            
+                            survey_link = get_survey_link(user, now_datetime, project)
+                            survey_link_content = f"""
+                                <div 
+                                    style="background-color:#002060; border-radius:5px; padding: 8px 14px; width: fit-content; margin: auto"
+                                >
+                                    <a href="{survey_link}"
+                                        style="color:#c0c0c0; border: solid #c0c0c0 1px; padding: 2px 8px"
+                                    >
+                                        Link to Today\'s daily survey
+                                    </a>
+                                </div>
+                            """
+                            
                             response = mailchimp.messages.send_template({
                                 "template_name": template_name,
-                                "template_content": [{}], #required
+                                "template_content": [{"name": "survey_link", "content": survey_link_content}], #required
                                 "message": message
                             })
                         else:
@@ -148,6 +174,7 @@ def main():
     for user in users:
         user_email = user.get("email") # some configs don't save the email
         if user_email in already_handled_users:
+            print("skip", user_email, user["creation_ts"])
             continue
         already_handled_users.add(user_email)
 
@@ -161,7 +188,8 @@ def main():
         # sendPushNotifications(user, now_datetime, project_day, project["daily_notifications"])
 
         if user_email:
-            sendEmail(user, now_datetime, project_day, project["daily_emails"], env["from_email"], mailchimp)
+            print("send", user_email, user["creation_ts"])
+            sendEmail(user, now_datetime, project_day, project, env["from_email"], mailchimp)
 
 if __name__ == "__main__":
     main()
