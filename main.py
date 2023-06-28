@@ -84,11 +84,11 @@ def getEmailTuple(email, language):
 
     return (subject, body)
 
-def get_survey_link(user, now_datetime, project):
+def get_survey_link(user, now_datetime, project_day, project):
     language = user["phone_lang"]
     email = user["email"]
     daily_forms = project["daily_forms"]
-    daily_survey = [daily_form for daily_form in daily_forms if daily_form["day"] == 3][0]
+    daily_survey = [daily_form for daily_form in daily_forms if daily_form["day"] == project_day][0]
     daily_survey_link = [url for url in daily_survey["urls"] if url["language"] == language][0]["url"]
 
     formatted_date = now_datetime.strftime("%Y-%m-%d")
@@ -119,7 +119,7 @@ def sendEmail(user, now_datetime, project_day, project, from_email, mailchimp):
                     try:
                         if (template_name):
                             
-                            survey_link = get_survey_link(user, now_datetime, project)
+                            survey_link = get_survey_link(user, now_datetime, project_day, project)
                             survey_link_content = f"""
                                 <div 
                                     style="background-color:#002060; border-radius:5px; padding: 8px 14px; width: fit-content; margin: auto"
